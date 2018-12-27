@@ -43,49 +43,7 @@ sys_getpid(void)
 }
 
 int
-sys_brk_de(int input_addr)
-{
-  int new_addr;
-  int old_addr;
-  int n;
-  uint sz;
-
-  // input address location, then change to int value
-  if (argint(0, &input_addr) < 0)
-    return -1;
-  old_addr = myproc()->sz;
-  cprintf("proc old address: %p\n", old_addr);
-  n = input_addr - myproc()->sz;
-
-  // check the sign of offset, if negative, free memory, otherwise move the physical memory address
-  if (n < 0) {
-    new_addr = myproc()->sz - n;
-    if ((sz = deallocuvm(myproc()->pgdir, old_addr, new_addr)) == 0) {
-      cprintf("Deallocating failed...\n");
-      return -1;
-    } else {
-      myproc()->sz -= n;
-      cprintf("proc new address: %p\n", myproc()->sz);
-    }
-  } else {
-    new_addr = myproc()->sz + n;
-    if ((sz = allocuvm(myproc()->pgdir, old_addr, new_addr)) == 0) {
-      cprintf("Allocating failed...\n");
-      return -1;
-    } else {
-      myproc()->sz += n;
-      cprintf("proc new address: %p\n", myproc()->sz);
-    }
-  }
-  // move virtual memory address
-  if (growproc(n) < 0)
-    return -1;
-  new_addr = myproc()->sz;
-  return new_addr;
-}
-
-int
-sys_sbrk_de(int nbyte)
+sys_sbrk_la(int nbyte)
 {
   int old_addr;
   int new_addr;
@@ -96,9 +54,10 @@ sys_sbrk_de(int nbyte)
   if (argint(0, &n) < 0)
     return -1;
 
+  cprintf("offset: %p\n", n);
+
   old_addr = myproc()->sz;
   cprintf("proc old address: %p\n", old_addr);
-
   // check the sign of offset, if negative, free memory, otherwise move the physical memory address
   if (n < 0) {
     new_addr = myproc()->sz - n;
@@ -119,26 +78,92 @@ sys_sbrk_de(int nbyte)
       cprintf("proc new address: %p\n", myproc()->sz);
     }
   }
-  // move virtual memory address
-  if (growproc(n) < 0)
-    return -1;
-  new_addr = myproc()->sz;
+
   return new_addr;
 }
 
+// ===== Version 2.0 (add allocation/deallocation func)=====
 int
 sys_sbrk(void)
 {
-  int addr;
+  int addr, new_addr;
   int n;
+  uint sz;
 
   if (argint(0, &n) < 0)
     return -1;
   addr = myproc()->sz;
-  if (growproc(n) < 0)
-    return -1;
+  cprintf("proc old size: %p\n", addr);                               // testing code
+
+  /***
+    checking the sign of offset, free the memory when offset is negative; 
+    otherwise, move the physical memory address
+   ***/
+
+  if (n < 0) {
+    new_addr = myproc()->sz - n;
+    if ((sz = deallocuvm(myproc()->pgdir, addr, new_addr)) == 0) {    // deallocate memory
+      cprintf("Deallocating failed...\n");                            // testing code
+      return -1;
+    } else {
+      myproc()->sz -= n;                                              // change the size of process, but not allocate physical memory
+      cprintf("proc new size: %p\n", myproc()->sz);                   // testing code
+    }
+  } else {
+    new_addr = myproc()->sz + n;
+    if ((sz = allocuvm(myproc()->pgdir, addr, new_addr)) == 0) {      // allocate memory
+      cprintf("Allocating failed...\n");                              // testing code
+      return -1;
+    } else {
+      myproc()->sz += n;                                              // change the size of process, but not allocate physical memory
+      cprintf("proc new size: %p\n", myproc()->sz);                   // testing code
+    }
+  }
+  new_addr = myproc()->sz;
+
   return addr;
 }
+
+// // ===== Version 1.0 (add lazy page allocation func) =====
+// int
+// sys_sbrk(void)
+// {
+//   int addr, new_addr;
+//   int n;
+  
+//   if (argint(0, &n) < 0)
+//     return -1;
+//   addr = myproc()->sz;
+//   cprintf("proc old size: %p\n", addr);             // testing code
+
+//   myproc()->sz += n;                                // change the size of process, but not allocate physical memory
+
+//   new_addr = myproc()->sz;
+//   cprintf("proc new size: %p\n", new_addr);         // testing code
+
+//   return addr;
+// }
+
+// // ===== Origin version =====
+// int
+// sys_sbrk(void)
+// {
+//   int addr, new_addr;
+//   int n;
+
+//   if (argint(0, &n) < 0)
+//     return -1;
+//   addr = myproc()->sz;
+//   cprintf("proc old size: %p\n", addr);             // testing code
+
+//   if (growproc(n) < 0)
+//     return -1;
+
+//   new_addr = myproc()->sz;
+//   cprintf("proc new size: %p\n", new_addr);         // testing code
+
+//   return addr;
+// }
 
 int
 sys_sleep(void)
@@ -181,28 +206,12 @@ sys_cps(void)
 }
 
 //sys_calloc
-
 int
 sys_calloc(void)
 {
   return calloc();
 }
 
-//sys_csbrk
-
-int
-sys_csbrk(void)
-{
-  int addr;
-  int n;
-
-  if (argint(0, &n) < 0)
-    return -1;
-  addr = myproc()->sz;
-  if (cgrowproc(n) < 0)
-    return -1;
-  return addr;
-}
 
 int
 sys_realloc(void)

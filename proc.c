@@ -565,12 +565,6 @@ calloc()
   return 23;
 }
 
-int
-brk_de()
-{
-  return 24;
-}
-
 // cgrowproc
 
 int
@@ -596,11 +590,11 @@ int
 realloc()
 {
   cprintf("[success] proc.realloc() test!\n");
-  return 26;
+  return 25;
 }
 
 int
-sbrk_de()
+sbrk_la()
 {
-  return 27;
+  return 24;
 }

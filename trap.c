@@ -46,21 +46,21 @@ trap(struct trapframe *tf)
       exit();
     return;
   }
-  if (tf->trapno == T_PGFLT) {          // check whether the error type is Page Fault
+  if (tf->trapno == T_PGFLT) {                                                    // check whether the error type is Page Fault
+    cprintf("page table fault happen!\n");                                        // testing code
     char *mem;
     uint a;
-    uint newsz;
+    a = PGROUNDDOWN(rcr2());                                                      // then use PGROUNDDOWN to find the page boundary
     // use rcr2() to find the virtual address where triggered the page fault
-    // then use PGROUNDDOWN to find the page boundary
-    a = PGROUNDDOWN(rcr2());
-    newsz = myproc()->sz;      // newsz is the amount of memory needed by the process
-    // Following codes were referenced from allocuvm()
+    uint newsz = myproc()->sz;                                                    // newsz is the amount of memory needed by the process
+
+    // Below codes were referenced from allocuvm()
     for (; a < newsz; a += PGSIZE) {
       mem = kalloc();
       memset(mem, 0, PGSIZE);
-      // map virtual addresses into physical addresses
-      mappages(myproc()->pgdir, (char*)a, PGSIZE, V2P(mem), PTE_W | PTE_U);
+      mappages(myproc()->pgdir, (char*)a, PGSIZE, V2P(mem), PTE_W | PTE_U);       // map virtual addresses into physical addresses
     }
+    cprintf("page table fault fixed!\n");                                         // testing code
     return;
   }
 

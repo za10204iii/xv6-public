@@ -5,7 +5,7 @@
 
 int
 main(int argc, char* argv[])
-{
-    brk_de(atoi(argv[argc-1]));
-    exit();
+{ 
+  sbrk_la(atoi(argv[argc-1]));
+  exit();
 }

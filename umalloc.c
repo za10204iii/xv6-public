@@ -60,6 +60,25 @@ morecore(uint nu)
   return freep;
 }
 
+//cmorecore
+static Header*
+cmorecore(uint nu)
+{
+    char *p;
+    Header *hp;
+    
+    if(nu < 4096)
+        nu = 4096;
+    p = sbrk(nu * sizeof(Header));
+    printf(1,"called cmorecore\n");
+    if(p == (char*)-1)
+        return 0;
+    hp = (Header*)p;
+    hp->s.size = nu;
+    free((void*)(hp + 1));
+    return freep;
+}
+
 void*
 malloc(uint nbytes)
 {
@@ -117,28 +136,8 @@ urealloc(void* curp, uint nbytes)
   return newp;
 }
 
-//cmorecore
-
-static Header*
-cmorecore(uint nu)
-{
-    char *p;
-    Header *hp;
-    
-    if(nu < 4096)
-        nu = 4096;
-    p = csbrk(nu * sizeof(Header));
-    printf(1,"called cmorecore\n");
-    if(p == (char*)-1)
-        return 0;
-    hp = (Header*)p;
-    hp->s.size = nu;
-    free((void*)(hp + 1));
-    return freep;
-}
 
 //cmalloc
-
 void*
 cmalloc(uint nbytes)
 {
