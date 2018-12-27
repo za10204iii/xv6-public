@@ -41,11 +41,11 @@ struct segdesc {
 
 // Normal segment
 #define SEG(type, base, lim, dpl) (struct segdesc)    \
-{ ((lim) >> 12) & 0xffff, (uint)(base) & 0xffff,      \
+{((lim) >> 12) & 0xffff, (uint)(base) & 0xffff,      \
   ((uint)(base) >> 16) & 0xff, type, 1, dpl, 1,       \
   (uint)(lim) >> 28, 0, 0, 1, 1, (uint)(base) >> 24 }
 #define SEG16(type, base, lim, dpl) (struct segdesc)  \
-{ (lim) & 0xffff, (uint)(base) & 0xffff,              \
+{(lim) & 0xffff, (uint)(base) & 0xffff,              \
   ((uint)(base) >> 16) & 0xff, type, 1, dpl, 1,       \
   (uint)(lim) >> 16, 0, 0, 1, 0, (uint)(base) >> 24 }
 #endif
@@ -64,27 +64,27 @@ struct segdesc {
 
 // A virtual address 'la' has a three-part structure as follows:
 //
-// +---------2----------+--------9-------+-------9--------+---------12----------+
+// +---------2----------+--------8-------+-------10-------+---------12----------+
 // |    Page Directory  | Page Directory |   Page Table   | Offset within Page  |
 // |    Pointer Index   |      Index     |      Index     |                     |
 // +--------------------+----------------+----------------+---------------------+
-// \-----PDPI(va)-----/  \--- PDX(va) --/ \--- PTX(va) --/
+// \-----PDPI(va)------/ \--- PDX(va) --/ \--- PTX(va) --/
 
 //page directory pointer index
 #define PDPI(va)        (((uint)(va) >> PDPISHIFT) & 0x3)
 
 // page directory index
-#define PDX(va)         (((uint)(va) >> PDXSHIFT) & 0x3FF)
+#define PDX(va)         (((uint)(va) >> PDXSHIFT) & 0xFF)
 
 // page table index
 #define PTX(va)         (((uint)(va) >> PTXSHIFT) & 0x3FF)
 
 // construct virtual address from indexes and offset
-#define PGADDR(d, t, o) ((uint)((d) << PDXSHIFT | (t) << PTXSHIFT | (o)))
+#define PGADDR(dp, d, t, o) ((uint)((dp) << PDPISHIFT | (d) << PDXSHIFT | (t) << PTXSHIFT | (o)))
 
 // Page directory and page table constants.
 #define NPDPENTRIES     4
-#define NPDENTRIES      1024    // # directory entries per page directory
+#define NPDENTRIES      256    // # directory entries per page directory
 #define NPTENTRIES      1024    // # PTEs per page table
 #define PGSIZE          4096    // bytes mapped by a page
 
