@@ -100,11 +100,11 @@ startothers(void)
 // PTE_PS in a page directory entry enables 4Mbyte pages.
 
 __attribute__((__aligned__(PGSIZE)))
-pde_t entrypgdir[NPDENTRIES] = {
+pde_t entrypgdir[1024] = {
   // Map VA's [0, 4MB) to PA's [0, 4MB)
   [0] = (0) | PTE_P | PTE_W | PTE_PS,
   // Map VA's [KERNBASE, KERNBASE+4MB) to PA's [0, 4MB)
-  [KERNBASE >> 23] = (0) | PTE_P | PTE_W | PTE_PS,
+  [KERNBASE >> 22] = (0) | PTE_P | PTE_W | PTE_PS,
 };
 
 //PAGEBREAK!
